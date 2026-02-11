@@ -3,26 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tienda de Tecnología - Sistema de Recompensas</title>
+    <title>Tech Store - Rewards System</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <!-- Header con sesión -->
+    <!-- Header with session -->
     <header class="header">
         <div class="header-content">
             <h1>🛍️ TechStore</h1>
             <div class="header-actions">
-                {% if cliente %}
+                {% if customer %}
                     <div class="user-info">
-                        <span>👤 {{ cliente[1] }}</span>
-                        <span class="points-badge">⭐ {{ cliente[3] }} puntos</span>
-                        <a href="{{ url_for('mis_puntos') }}" class="btn btn-small btn-info">Mis Puntos</a>
-                        <a href="{{ url_for('logout') }}" class="btn btn-small btn-secondary">Cerrar Sesión</a>
+                        <span>👤 {{ customer[1] }}</span>
+                        <span class="points-badge">⭐ {{ customer[3] }} points</span>
+                        <a href="{{ url_for('my_points') }}" class="btn btn-small btn-info">My Points</a>
+                        <a href="{{ url_for('logout') }}" class="btn btn-small btn-secondary">Logout</a>
                     </div>
                 {% else %}
                     <div class="auth-buttons">
-                        <a href="{{ url_for('login') }}" class="btn btn-small btn-primary">Iniciar Sesión</a>
-                        <a href="{{ url_for('registrar_cliente') }}" class="btn btn-small btn-success">Registrarse</a>
+                        <a href="{{ url_for('login') }}" class="btn btn-small btn-primary">Login</a>
+                        <a href="{{ url_for('register_customer') }}" class="btn btn-small btn-success">Register</a>
                     </div>
                 {% endif %}
             </div>
@@ -30,7 +30,7 @@
     </header>
 
     <div class="container">
-        <!-- Mensajes flash -->
+        <!-- Flash messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -42,30 +42,30 @@
         {% endwith %}
         
         <div class="info-banner">
-            <h3>🎁 Programa de Recompensas</h3>
-            <p>💰 Gana 1 punto por cada $1.000 en compras | 🎯 Canjea 1 punto por $100 de descuento</p>
+            <h3>🎁 Rewards Program</h3>
+            <p>💰 Earn 1 point for every $1,000 | 🎯 Redeem 1 point for $100 discount</p>
         </div>
         
-        <h2 class="section-title">📦 Nuestros Productos</h2>
+        <h2 class="section-title">📦 Our Products</h2>
         
         <div class="products-grid">
-            {% for producto in productos %}
+            {% for product in products %}
                 <div class="product-card-shop">
                     <div class="product-header">
-                        <h3>{{ producto[1] }}</h3>
+                        <h3>{{ product[1] }}</h3>
                     </div>
                     <div class="product-body">
-                        <p class="product-price">${{ "{:,}".format(producto[2]) }}</p>
-                        <p class="product-points">🌟 Ganas {{ producto[2] // 1000 }} puntos</p>
+                        <p class="product-price">${{ "{:,}".format(product[2]) }}</p>
+                        <p class="product-points">🌟 Earn {{ product[2] // 1000 }} points</p>
                     </div>
                     <div class="product-footer">
-                        {% if cliente %}
-                            <a href="{{ url_for('comprar', producto_id=producto[0]) }}" class="btn btn-buy">
-                                🛒 Comprar
+                        {% if customer %}
+                            <a href="{{ url_for('purchase', product_id=product[0]) }}" class="btn btn-buy">
+                                🛒 Buy Now
                             </a>
                         {% else %}
                             <a href="{{ url_for('login') }}" class="btn btn-buy">
-                                🔒 Iniciar sesión para comprar
+                                🔒 Login to purchase
                             </a>
                         {% endif %}
                     </div>

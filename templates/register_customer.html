@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registrarse</title>
+    <title>Register</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="container-auth">
         <div class="auth-box">
-            <h1>📝 Crear Cuenta</h1>
+            <h1>📝 Create Account</h1>
             
-            <!-- Mensajes flash -->
+            <!-- Flash messages -->
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
@@ -24,23 +24,25 @@
             
             <form method="POST" class="form">
                 <div class="form-group">
-                    <label for="nombre">Nombre Completo:</label>
-                    <input type="text" id="nombre" name="nombre" required placeholder="Ej: Juan Pérez">
+                    <label for="name">Full Name:</label>
+                    <input type="text" id="name" name="name" required placeholder="E.g.: John Smith">
+                    <small>Must contain only letters (3-50 characters)</small>
                 </div>
                 
                 <div class="form-group">
-                    <label for="cedula">Cédula:</label>
-                    <input type="text" id="cedula" name="cedula" required placeholder="Ej: 1234567890">
+                    <label for="id_card">ID Card:</label>
+                    <input type="text" id="id_card" name="id_card" required placeholder="E.g.: 1234567890">
+                    <small>Must contain only numbers (6-12 digits)</small>
                 </div>
                 
                 <div class="form-buttons-auth">
-                    <button type="submit" class="btn btn-success btn-full">Crear Cuenta</button>
+                    <button type="submit" class="btn btn-success btn-full">Create Account</button>
                 </div>
             </form>
             
             <div class="auth-footer">
-                <p>¿Ya tienes cuenta? <a href="{{ url_for('login') }}">Inicia sesión aquí</a></p>
-                <p><a href="{{ url_for('index') }}">Volver a la tienda</a></p>
+                <p>Already have an account? <a href="{{ url_for('login') }}">Login here</a></p>
+                <p><a href="{{ url_for('index') }}">Back to store</a></p>
             </div>
         </div>
     </div>

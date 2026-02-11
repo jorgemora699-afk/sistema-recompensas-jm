@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase - {{ product[1] }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        function calculateDiscount() {
+            const pointsToUse = parseInt(document.getElementById('points_to_use').value) || 0;
+            const availablePoints = {{ customer[3] }};
+            const productPrice = {{ product[2] }};
+            const pointValue = 100;
+            
+            // Validate points
+            if (pointsToUse > availablePoints) {
+                document.getElementById('error-points').style.display = 'block';
+                document.getElementById('error-points').textContent = `You only have ${availablePoints} points available`;
+                document.getElementById('summary').style.display = 'none';
+                return;
+            }
+            
+            const discount = pointsToUse * pointValue;
+            
+            if (discount > productPrice) {
+                document.getElementById('error-points').style.display = 'block';
+                document.getElementById('error-points').textContent = 'Discount cannot exceed product price';
+                document.getElementById('summary').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('error-points').style.display = 'none';
+            
+            const finalPrice = productPrice - discount;
+            const pointsEarned = Math.floor(finalPrice / 1000);
+            const finalPoints = availablePoints - pointsToUse + pointsEarned;
+            
+            // Show summary
+            document.getElementById('discount-value').textContent = discount.toLocaleString();
+            document.getElementById('final-price').textContent = finalPrice.toLocaleString();
+            document.getElementById('points-earned').textContent = pointsEarned;
+            document.getElementById('final-points').textContent = finalPoints;
+            document.getElementById('summary').style.display = 'block';
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>🛒 Complete Purchase</h1>
+        
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <div class="checkout-container">
+            <div class="product-summary">
+                <h2>{{ product[1] }}</h2>
+                <p class="product-price-large">${{ "{:,}".format(product[2]) }}</p>
+                <p class="product-points-info">🌟 You will earn {{ product[2] // 1000 }} points with this purchase</p>
+            </div>
+            
+            <div class="customer-info">
+                <h3>👤 Customer</h3>
+                <p><strong>Name:</strong> {{ customer[1] }}</p>
+                <p><strong>ID Card:</strong> {{ customer[2] }}</p>
+                <p><strong>Available points:</strong> <span class="points-highlight">{{ customer[3] }} points</span></p>
+            </div>
+            
+            <form method="POST" class="form">
+                <div class="points-redemption">
+                    <h3>🎯 Redeem Points (Optional)</h3>
+                    <p class="info-text">1 point = $100 discount</p>
+                    
+                    <div class="form-group">
+                        <label for="points_to_use">Points to use:</label>
+                        <input 
+                            type="number" 
+                            id="points_to_use" 
+                            name="points_to_use" 
+                            min="0" 
+                            max="{{ customer[3] }}" 
+                            value="0"
+                            oninput="calculateDiscount()"
+                            placeholder="0"
+                        >
+                    </div>
+                    
+                    <div id="error-points" class="error-message" style="display: none;"></div>
+                    
+                    <div id="summary" class="purchase-summary" style="display: none;">
+                        <h4>📋 Purchase Summary</h4>
+                        <table class="summary-table">
+                            <tr>
+                                <td>Original price:</td>
+                                <td class="text-right">${{ "{:,}".format(product[2]) }}</td>
+                            </tr>
+                            <tr>
+                                <td>Points discount:</td>
+                                <td class="text-right discount">-$<span id="discount-value">0</span></td>
+                            </tr>
+                            <tr class="total-row">
+                                <td><strong>Final price:</strong></td>
+                                <td class="text-right"><strong>$<span id="final-price">{{ "{:,}".format(product[2]) }}</span></strong></td>
+                            </tr>
+                            <tr>
+                                <td>Points you will earn:</td>
+                                <td class="text-right points-earned">+<span id="points-earned">{{ product[2] // 1000 }}</span> points</td>
+                            </tr>
+                            <tr class="total-row">
+                                <td><strong>Total points after:</strong></td>
+                                <td class="text-right"><strong><span id="final-points">{{ customer[3] + (product[2] // 1000) }}</span> points</strong></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-success btn-large">✅ Confirm Purchase</button>
+                    <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

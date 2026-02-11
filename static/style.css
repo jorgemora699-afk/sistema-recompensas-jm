@@ -631,3 +631,20 @@ select:focus {
         text-align: center;
     }
 }
+
+/* Validation helpers */
+small {
+    display: block;
+    margin-top: 5px;
+    color: #666;
+    font-size: 0.85em;
+    font-style: italic;
+}
+
+input:invalid {
+    border-color: #dc3545;
+}
+
+input:valid {
+    border-color: #28a745;
+}

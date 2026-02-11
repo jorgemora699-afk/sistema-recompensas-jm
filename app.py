@@ -1,129 +1,184 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 import database
+import re
 
 app = Flask(__name__)
-app.secret_key = 'clave_secreta_123'
+app.secret_key = 'secret_key_123'
 
-# Inicializar la base de datos
-database.inicializar_db()
+# Initialize database
+database.initialize_database()
 
-# Reglas de negocio
-PESOS_POR_PUNTO = 1000  # Por cada $1.000 pesos = 1 punto
-PESOS_POR_REDENCION = 100  # 1 punto = $100 pesos
+# Business rules
+PESOS_PER_POINT = 1000  # $1,000 pesos = 1 point
+PESOS_PER_REDEMPTION = 100  # 1 point = $100 pesos
 
-def calcular_puntos(monto_compra):
-    """Calcula cuántos puntos se ganan por una compra"""
-    puntos = int(monto_compra / PESOS_POR_PUNTO)
-    return puntos
+def calculate_points(purchase_amount):
+    """Calculates how many points are earned from a purchase"""
+    points = int(purchase_amount / PESOS_PER_POINT)
+    return points
+
+def validate_id_card(id_card):
+    """Validates ID card format (only numbers, 6-12 digits)"""
+    if not id_card:
+        return False, "ID card is required"
+    if not re.match(r'^\d{6,12}$', id_card):
+        return False, "ID card must contain only numbers (6-12 digits)"
+    return True, ""
+
+def validate_name(name):
+    """Validates customer name (letters and spaces only, 3-50 characters)"""
+    if not name:
+        return False, "Name is required"
+    if len(name.strip()) < 3:
+        return False, "Name must be at least 3 characters"
+    if len(name.strip()) > 50:
+        return False, "Name cannot exceed 50 characters"
+    if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', name):
+        return False, "Name must contain only letters and spaces"
+    return True, ""
+
+def validate_points(points_str, available_points):
+    """Validates points to redeem"""
+    try:
+        points = int(points_str)
+        if points < 0:
+            return False, "Points cannot be negative", 0
+        if points > available_points:
+            return False, f"You only have {available_points} points available", 0
+        return True, "", points
+    except ValueError:
+        return False, "Points must be a valid number", 0
 
 @app.route('/')
 def index():
-    """Página principal - Tienda"""
-    productos = database.listar_productos()
-    cliente_logueado = None
+    """Main page - Store"""
+    products = database.list_all_products()
+    logged_customer = None
     
-    if 'cedula' in session:
-        cliente_logueado = database.obtener_cliente_por_cedula(session['cedula'])
+    if 'id_card' in session:
+        logged_customer = database.get_customer_by_id_card(session['id_card'])
     
-    return render_template('index.html', productos=productos, cliente=cliente_logueado)
+    return render_template('index.html', products=products, customer=logged_customer)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    """Iniciar sesión"""
+    """Login"""
     if request.method == 'POST':
-        cedula = request.form['cedula']
-        cliente = database.obtener_cliente_por_cedula(cedula)
+        id_card = request.form.get('id_card', '').strip()
         
-        if cliente:
-            session['cedula'] = cedula
-            flash(f'¡Bienvenido {cliente[1]}!', 'success')
+        # Validate ID card
+        is_valid, error_message = validate_id_card(id_card)
+        if not is_valid:
+            flash(error_message, 'error')
+            return render_template('login.html')
+        
+        customer = database.get_customer_by_id_card(id_card)
+        
+        if customer:
+            session['id_card'] = id_card
+            flash(f'Welcome {customer[1]}!', 'success')
             return redirect(url_for('index'))
         else:
-            flash('Cliente no encontrado. Por favor regístrese.', 'error')
-            return redirect(url_for('registrar_cliente'))
+            flash('Customer not found. Please register.', 'error')
+            return redirect(url_for('register_customer'))
     
     return render_template('login.html')
 
 @app.route('/logout')
 def logout():
-    """Cerrar sesión"""
-    session.pop('cedula', None)
-    flash('Sesión cerrada exitosamente', 'success')
+    """Logout"""
+    session.pop('id_card', None)
+    flash('Session closed successfully', 'success')
     return redirect(url_for('index'))
 
-@app.route('/registrar_cliente', methods=['GET', 'POST'])
-def registrar_cliente():
-    """Registrar un nuevo cliente"""
+@app.route('/register_customer', methods=['GET', 'POST'])
+def register_customer():
+    """Register a new customer"""
     if request.method == 'POST':
-        nombre = request.form['nombre']
-        cedula = request.form['cedula']
+        name = request.form.get('name', '').strip()
+        id_card = request.form.get('id_card', '').strip()
         
-        if database.crear_cliente(nombre, cedula):
-            session['cedula'] = cedula
-            flash(f'¡Bienvenido {nombre}! Tu cuenta ha sido creada.', 'success')
+        # Validate name
+        is_valid, error_message = validate_name(name)
+        if not is_valid:
+            flash(error_message, 'error')
+            return render_template('register_customer.html')
+        
+        # Validate ID card
+        is_valid, error_message = validate_id_card(id_card)
+        if not is_valid:
+            flash(error_message, 'error')
+            return render_template('register_customer.html')
+        
+        # Create customer
+        if database.create_customer(name, id_card):
+            session['id_card'] = id_card
+            flash(f'Welcome {name}! Your account has been created successfully.', 'success')
             return redirect(url_for('index'))
         else:
-            flash(f'Error: La cédula {cedula} ya está registrada', 'error')
+            flash(f'Error: ID card {id_card} is already registered', 'error')
     
-    return render_template('registrar_cliente.html')
+    return render_template('register_customer.html')
 
-@app.route('/comprar/<int:producto_id>', methods=['GET', 'POST'])
-def comprar(producto_id):
-    """Página de compra con opción de redimir puntos"""
-    if 'cedula' not in session:
-        flash('Debes iniciar sesión para comprar', 'error')
+@app.route('/purchase/<int:product_id>', methods=['GET', 'POST'])
+def purchase(product_id):
+    """Purchase page with option to redeem points"""
+    if 'id_card' not in session:
+        flash('You must login to purchase', 'error')
         return redirect(url_for('login'))
     
-    cliente = database.obtener_cliente_por_cedula(session['cedula'])
-    producto = database.obtener_producto(producto_id)
+    customer = database.get_customer_by_id_card(session['id_card'])
+    product = database.get_product_by_id(product_id)
     
-    if not producto:
-        flash('Producto no encontrado', 'error')
+    if not product:
+        flash('Product not found', 'error')
         return redirect(url_for('index'))
     
     if request.method == 'POST':
-        puntos_a_usar = int(request.form.get('puntos_usar', 0))
+        points_to_use_str = request.form.get('points_to_use', '0')
         
-        puntos_disponibles = cliente[3]
-        precio_producto = producto[2]
+        available_points = customer[3]
+        product_price = product[2]
         
-        # Validar puntos
-        if puntos_a_usar > puntos_disponibles:
-            flash(f'Error: Solo tienes {puntos_disponibles} puntos disponibles', 'error')
-            return redirect(url_for('comprar', producto_id=producto_id))
+        # Validate points
+        is_valid, error_message, points_to_use = validate_points(points_to_use_str, available_points)
+        if not is_valid:
+            flash(error_message, 'error')
+            return redirect(url_for('purchase', product_id=product_id))
         
-        # Calcular descuento
-        descuento = puntos_a_usar * PESOS_POR_REDENCION
+        # Calculate discount
+        discount = points_to_use * PESOS_PER_REDEMPTION
         
-        if descuento > precio_producto:
-            flash('Error: El descuento no puede ser mayor al precio del producto', 'error')
-            return redirect(url_for('comprar', producto_id=producto_id))
+        # Validate discount doesn't exceed product price
+        if discount > product_price:
+            flash('Error: Discount cannot exceed product price', 'error')
+            return redirect(url_for('purchase', product_id=product_id))
         
-        # Calcular precio final
-        precio_final = precio_producto - descuento
+        # Calculate final price
+        final_price = product_price - discount
         
-        # Calcular puntos ganados por la compra
-        puntos_ganados = calcular_puntos(precio_final)
+        # Calculate points earned from purchase
+        points_earned = calculate_points(final_price)
         
-        # Actualizar puntos: restar los usados y sumar los ganados
-        nuevos_puntos = puntos_disponibles - puntos_a_usar + puntos_ganados
+        # Update points: subtract used and add earned
+        new_points = available_points - points_to_use + points_earned
         
-        database.actualizar_puntos(session['cedula'], nuevos_puntos)
+        database.update_points(session['id_card'], new_points)
         
-        flash(f'¡Compra exitosa! Compraste {producto[1]} por ${precio_final:,}. Usaste {puntos_a_usar} puntos y ganaste {puntos_ganados} puntos nuevos. Total de puntos: {nuevos_puntos}', 'success')
+        flash(f'Purchase successful! You bought {product[1]} for ${final_price:,}. You used {points_to_use} points and earned {points_earned} new points. Total points: {new_points}', 'success')
         return redirect(url_for('index'))
     
-    return render_template('comprar.html', producto=producto, cliente=cliente)
+    return render_template('purchase.html', product=product, customer=customer)
 
-@app.route('/mis_puntos')
-def mis_puntos():
-    """Ver mis puntos"""
-    if 'cedula' not in session:
-        flash('Debes iniciar sesión', 'error')
+@app.route('/my_points')
+def my_points():
+    """View my points"""
+    if 'id_card' not in session:
+        flash('You must login', 'error')
         return redirect(url_for('login'))
     
-    cliente = database.obtener_cliente_por_cedula(session['cedula'])
-    return render_template('mis_puntos.html', cliente=cliente)
+    customer = database.get_customer_by_id_card(session['id_card'])
+    return render_template('my_points.html', customer=customer)
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,113 +1,113 @@
 import sqlite3
 
-def inicializar_db():
-    """Crea la base de datos y las tablas si no existen"""
-    conn = sqlite3.connect('recompensas.db')
+def initialize_database():
+    """Creates the database and tables if they don't exist"""
+    conn = sqlite3.connect('rewards.db')
     cursor = conn.cursor()
     
-    # Tabla de clientes con cédula
+    # Customers table with ID card
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS clientes (
+        CREATE TABLE IF NOT EXISTS customers (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT NOT NULL,
-            cedula TEXT UNIQUE NOT NULL,
-            puntos INTEGER DEFAULT 0
+            name TEXT NOT NULL,
+            id_card TEXT UNIQUE NOT NULL,
+            points INTEGER DEFAULT 0
         )
     ''')
     
-    # Tabla de productos
+    # Products table
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS productos (
+        CREATE TABLE IF NOT EXISTS products (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT NOT NULL,
-            precio INTEGER NOT NULL
+            name TEXT NOT NULL,
+            price INTEGER NOT NULL
         )
     ''')
     
-    # Insertar productos iniciales si no existen
-    cursor.execute('SELECT COUNT(*) FROM productos')
+    # Insert initial products if none exist
+    cursor.execute('SELECT COUNT(*) FROM products')
     if cursor.fetchone()[0] == 0:
-        productos_iniciales = [
-            ('Laptop Dell Inspiron 15', 2500000),
-            ('Mouse Logitech MX Master', 250000),
-            ('Teclado Mecánico Razer', 450000),
-            ('Monitor Samsung 24"', 800000),
-            ('Auriculares Sony WH-1000XM5', 1200000),
-            ('Tablet Samsung Galaxy Tab', 1500000),
-            ('Webcam Logitech C920', 350000),
-            ('Disco Duro Externo 2TB', 300000),
-            ('Impresora HP LaserJet', 900000),
-            ('Router WiFi 6 TP-Link', 400000)
+        initial_products = [
+            ('Dell Inspiron 15 Laptop', 2500000),
+            ('Logitech MX Master Mouse', 250000),
+            ('Razer Mechanical Keyboard', 450000),
+            ('Samsung 24" Monitor', 800000),
+            ('Sony WH-1000XM5 Headphones', 1200000),
+            ('Samsung Galaxy Tab Tablet', 1500000),
+            ('Logitech C920 Webcam', 350000),
+            ('2TB External Hard Drive', 300000),
+            ('HP LaserJet Printer', 900000),
+            ('TP-Link WiFi 6 Router', 400000)
         ]
-        cursor.executemany('INSERT INTO productos (nombre, precio) VALUES (?, ?)', productos_iniciales)
+        cursor.executemany('INSERT INTO products (name, price) VALUES (?, ?)', initial_products)
     
     conn.commit()
     conn.close()
 
-def obtener_cliente_por_cedula(cedula):
-    """Busca un cliente por cédula"""
-    conn = sqlite3.connect('recompensas.db')
+def get_customer_by_id_card(id_card):
+    """Finds a customer by ID card"""
+    conn = sqlite3.connect('rewards.db')
     cursor = conn.cursor()
     
-    cursor.execute('SELECT * FROM clientes WHERE cedula = ?', (cedula,))
-    cliente = cursor.fetchone()
+    cursor.execute('SELECT * FROM customers WHERE id_card = ?', (id_card,))
+    customer = cursor.fetchone()
     
     conn.close()
-    return cliente
+    return customer
 
-def crear_cliente(nombre, cedula):
-    """Crea un nuevo cliente con 0 puntos"""
-    conn = sqlite3.connect('recompensas.db')
+def create_customer(name, id_card):
+    """Creates a new customer with 0 points"""
+    conn = sqlite3.connect('rewards.db')
     cursor = conn.cursor()
     
     try:
-        cursor.execute('INSERT INTO clientes (nombre, cedula, puntos) VALUES (?, ?, 0)', (nombre, cedula))
+        cursor.execute('INSERT INTO customers (name, id_card, points) VALUES (?, ?, 0)', (name, id_card))
         conn.commit()
         conn.close()
         return True
     except sqlite3.IntegrityError:
         conn.close()
-        return False  # La cédula ya existe
+        return False  # ID card already exists
 
-def actualizar_puntos(cedula, puntos):
-    """Actualiza los puntos de un cliente"""
-    conn = sqlite3.connect('recompensas.db')
+def update_points(id_card, points):
+    """Updates customer points"""
+    conn = sqlite3.connect('rewards.db')
     cursor = conn.cursor()
     
-    cursor.execute('UPDATE clientes SET puntos = ? WHERE cedula = ?', (puntos, cedula))
+    cursor.execute('UPDATE customers SET points = ? WHERE id_card = ?', (points, id_card))
     
     conn.commit()
     conn.close()
 
-def listar_clientes():
-    """Obtiene todos los clientes"""
-    conn = sqlite3.connect('recompensas.db')
+def list_all_customers():
+    """Gets all customers"""
+    conn = sqlite3.connect('rewards.db')
     cursor = conn.cursor()
     
-    cursor.execute('SELECT * FROM clientes')
-    clientes = cursor.fetchall()
+    cursor.execute('SELECT * FROM customers')
+    customers = cursor.fetchall()
     
     conn.close()
-    return clientes
+    return customers
 
-def listar_productos():
-    """Obtiene todos los productos"""
-    conn = sqlite3.connect('recompensas.db')
+def list_all_products():
+    """Gets all products"""
+    conn = sqlite3.connect('rewards.db')
     cursor = conn.cursor()
     
-    cursor.execute('SELECT * FROM productos')
-    productos = cursor.fetchall()
+    cursor.execute('SELECT * FROM products')
+    products = cursor.fetchall()
     
     conn.close()
-    return productos
+    return products
 
-def obtener_producto(producto_id):
-    """Obtiene un producto por ID"""
-    conn = sqlite3.connect('recompensas.db')
+def get_product_by_id(product_id):
+    """Gets a product by ID"""
+    conn = sqlite3.connect('rewards.db')
     cursor = conn.cursor()
     
-    cursor.execute('SELECT * FROM productos WHERE id = ?', (producto_id,))
-    producto = cursor.fetchone()
+    cursor.execute('SELECT * FROM products WHERE id = ?', (product_id,))
+    product = cursor.fetchone()
     
     conn.close()
-    return producto
+    return product

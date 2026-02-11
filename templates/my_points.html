@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Points</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>⭐ My Reward Points</h1>
+        
+        <div class="points-dashboard">
+            <div class="points-card">
+                <h2>👤 {{ customer[1] }}</h2>
+                <p class="cedula-info">ID Card: {{ customer[2] }}</p>
+                
+                <div class="points-display">
+                    <h3>Accumulated Points</h3>
+                    <p class="points-total">{{ customer[3] }}</p>
+                    <p class="points-subtitle">available points</p>
+                </div>
+                
+                <div class="points-value">
+                    <h4>💰 Discount Value</h4>
+                    <p class="discount-amount">${{ "{:,}".format(customer[3] * 100) }}</p>
+                    <p class="value-subtitle">pesos in available discounts</p>
+                </div>
+            </div>
+            
+            <div class="rewards-info">
+                <h3>📊 Program Information</h3>
+                
+                <div class="info-card">
+                    <h4>🎯 How to earn points</h4>
+                    <p>For every <strong>$1,000</strong> in purchases = <strong>1 point</strong></p>
+                </div>
+                
+                <div class="info-card">
+                    <h4>🎁 How to use points</h4>
+                    <p><strong>1 point</strong> = <strong>$100</strong> discount</p>
+                    <p class="small-text">You can redeem your points when purchasing any product</p>
+                </div>
+                
+                <div class="info-card">
+                    <h4>💡 Examples</h4>
+                    <ul class="examples-list">
+                        <li>With <strong>10 points</strong> → $1,000 discount</li>
+                        <li>With <strong>50 points</strong> → $5,000 discount</li>
+                        <li>With <strong>100 points</strong> → $10,000 discount</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="actions-section">
+            <a href="{{ url_for('index') }}" class="btn btn-primary btn-large">🛍️ Go Shopping</a>
+            <a href="{{ url_for('logout') }}" class="btn btn-secondary">Logout</a>
+        </div>
+    </div>
+</body>
+</html>
