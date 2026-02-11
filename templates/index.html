@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tienda de Tecnología - Sistema de Recompensas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <!-- Header con sesión -->
+    <header class="header">
+        <div class="header-content">
+            <h1>🛍️ TechStore</h1>
+            <div class="header-actions">
+                {% if cliente %}
+                    <div class="user-info">
+                        <span>👤 {{ cliente[1] }}</span>
+                        <span class="points-badge">⭐ {{ cliente[3] }} puntos</span>
+                        <a href="{{ url_for('mis_puntos') }}" class="btn btn-small btn-info">Mis Puntos</a>
+                        <a href="{{ url_for('logout') }}" class="btn btn-small btn-secondary">Cerrar Sesión</a>
+                    </div>
+                {% else %}
+                    <div class="auth-buttons">
+                        <a href="{{ url_for('login') }}" class="btn btn-small btn-primary">Iniciar Sesión</a>
+                        <a href="{{ url_for('registrar_cliente') }}" class="btn btn-small btn-success">Registrarse</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Mensajes flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <div class="info-banner">
+            <h3>🎁 Programa de Recompensas</h3>
+            <p>💰 Gana 1 punto por cada $1.000 en compras | 🎯 Canjea 1 punto por $100 de descuento</p>
+        </div>
+        
+        <h2 class="section-title">📦 Nuestros Productos</h2>
+        
+        <div class="products-grid">
+            {% for producto in productos %}
+                <div class="product-card-shop">
+                    <div class="product-header">
+                        <h3>{{ producto[1] }}</h3>
+                    </div>
+                    <div class="product-body">
+                        <p class="product-price">${{ "{:,}".format(producto[2]) }}</p>
+                        <p class="product-points">🌟 Ganas {{ producto[2] // 1000 }} puntos</p>
+                    </div>
+                    <div class="product-footer">
+                        {% if cliente %}
+                            <a href="{{ url_for('comprar', producto_id=producto[0]) }}" class="btn btn-buy">
+                                🛒 Comprar
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('login') }}" class="btn btn-buy">
+                                🔒 Iniciar sesión para comprar
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
