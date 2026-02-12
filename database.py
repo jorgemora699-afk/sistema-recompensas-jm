@@ -20,7 +20,8 @@ def initialize_database():
         CREATE TABLE IF NOT EXISTS products (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
-            price INTEGER NOT NULL
+            price INTEGER NOT NULL,
+            image_url TEXT DEFAULT '/static/images/default-product.jpg'
         )
     ''')
     
@@ -28,18 +29,18 @@ def initialize_database():
     cursor.execute('SELECT COUNT(*) FROM products')
     if cursor.fetchone()[0] == 0:
         initial_products = [
-            ('Dell Inspiron 15 Laptop', 2500000),
-            ('Logitech MX Master Mouse', 250000),
-            ('Razer Mechanical Keyboard', 450000),
-            ('Samsung 24" Monitor', 800000),
-            ('Sony WH-1000XM5 Headphones', 1200000),
-            ('Samsung Galaxy Tab Tablet', 1500000),
-            ('Logitech C920 Webcam', 350000),
-            ('2TB External Hard Drive', 300000),
-            ('HP LaserJet Printer', 900000),
-            ('TP-Link WiFi 6 Router', 400000)
+            ('Dell Inspiron 15 Laptop', 2500000, '/static/images/inspirion.jpg'),
+            ('Logitech MX Master Mouse', 250000, '/static/images/mouse.jpg'),
+            ('Razer Mechanical Keyboard', 450000, '/static/images/keyboard.jpg'),
+            ('Samsung 24" Monitor', 800000, '/static/images/monitor 24.jpg'),
+            ('Sony WH-1000XM5 Headphones', 1200000, '/static/images/headphones.jpg'),
+            ('Samsung Galaxy Tab Tablet', 1500000, '/static/images/tab.jpg'),
+            ('Logitech C920 Webcam', 350000, '/static/images/cam.jpg'),
+            ('2TB External Hard Drive', 300000, '/static/images/hard drive.jpg'),
+            ('HP LaserJet Printer', 900000, '/static/images/print.jpg'),
+            ('TP-Link WiFi 6 Router', 400000, '/static/images/router.jpg')
         ]
-        cursor.executemany('INSERT INTO products (name, price) VALUES (?, ?)', initial_products)
+        cursor.executemany('INSERT INTO products (name, price, image_url) VALUES (?, ?, ?)', initial_products)
     
     conn.commit()
     conn.close()

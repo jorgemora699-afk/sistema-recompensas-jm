@@ -51,6 +51,11 @@
         <div class="products-grid">
             {% for product in products %}
                 <div class="product-card-shop">
+                    <!-- AGREGAR ESTA SECCIÓN DE IMAGEN -->
+                    <div class="product-image">
+                        <img src="{{ product[3] }}" alt="{{ product[1] }}">
+                    </div>
+                    
                     <div class="product-header">
                         <h3>{{ product[1] }}</h3>
                     </div>
