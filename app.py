@@ -3,7 +3,7 @@ import database
 import re
 
 app = Flask(__name__)
-app.secret_key = 'secret_key_123'
+app.secret_key = 'pb202602'
 
 # Initialize database
 database.initialize_database()
@@ -107,7 +107,7 @@ def register_customer():
         # Validate ID card
         is_valid, error_message = validate_id_card(id_card)
         if not is_valid:
-            flash(error_message, 'error')
+            flash(error_message, 'error.')
             return render_template('register_customer.html')
         
         # Create customer
